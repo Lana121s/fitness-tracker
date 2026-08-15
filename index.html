@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Дневник тренировок</title>
+
+<!--
+  Это заготовка для Telegram Mini App.
+  Когда будете подключать к реальному боту — раскомментируйте строку ниже
+  и подключите её в BotFather как Web App URL.
+-->
+<!-- <script src="https://telegram.org/js/telegram-web-app.js"></script> -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream: #F7F8F3;
+    --cream-card: #FFFFFF;
+    --ink: #333A2D;
+    --ink-soft: #8B927E;
+    --wine: #8CA179;
+    --wine-deep: #6F8460;
+    --sage: #C3D3B4;
+    --sage-soft: #EEF2E7;
+    --line: #E7EBE0;
+    --amber: #C79A56;
+    --amber-soft: #F5ECDA;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background: var(--cream);
+    font-family: 'Work Sans', sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .screen{
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+    min-height: 100vh;
+  }
+
+  .eyebrow{
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+  }
+
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 30px;
+    line-height: 1.15;
+    margin: 0 0 28px;
+    letter-spacing: -0.01em;
+  }
+
+  .card{
+    background: var(--cream-card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+
+  .level-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 18px;
+  }
+
+  .level-label{
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 6px;
+  }
+
+  .level-name{
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+    display:flex;
+    align-items:center;
+    gap: 8px;
+  }
+
+  .level-mark{
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--wine);
+    display:inline-block;
+  }
+
+  .streak-pill{
+    background: var(--sage-soft);
+    color: #4C5B3F;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    display:flex;
+    align-items:center;
+    gap: 6px;
+  }
+
+  .progress-block{
+    background: var(--cream);
+    border-radius: 14px;
+    padding: 16px 16px 14px;
+  }
+
+  .progress-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom: 10px;
+  }
+
+  .progress-top .to-label{
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .progress-top .next-level{
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    margin-left: 8px;
+  }
+
+  .progress-track{
+    height: 5px;
+    background: var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-fill{
+    height: 100%;
+    background: var(--wine);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-meta{
+    display:flex;
+    justify-content:space-between;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .cta-row{
+    display:flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .cta{
+    flex: 1;
+    background: var(--wine);
+    color: #FBF3E9;
+    border: none;
+    border-radius: 14px;
+    padding: 17px 10px;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .cta:active{ transform: scale(0.98); }
+  .cta.done{ background: var(--sage); color: #2E3527; }
+
+  .cta-rest{
+    flex: 1;
+    background: var(--amber-soft);
+    color: #8A6A2E;
+    border: none;
+    border-radius: 14px;
+    padding: 17px 10px;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .cta-rest:active{ transform: scale(0.98); }
+  .cta-rest.done{ background: var(--amber); color: #FBF3E9; }
+
+  .diary-title{
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 500;
+    margin: 0 0 16px;
+  }
+
+  .week-grid{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .day{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 8px;
+  }
+
+  .day-label{
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .day-circle{
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1.5px solid var(--line);
+    color: var(--ink-soft);
+    background: var(--cream-card);
+  }
+
+  .day-circle.today{
+    border-color: var(--wine);
+    color: var(--wine);
+    font-weight: 600;
+  }
+
+  .day-circle.done{
+    background: var(--wine);
+    border-color: var(--wine);
+    color: #FBF3E9;
+  }
+
+  .day-circle.rest{
+    background: var(--amber-soft);
+    border-color: var(--amber);
+    color: #8A6A2E;
+  }
+
+  .day-circle.future{
+    color: #C9BFAE;
+    border-color: var(--line);
+  }
+
+  .month-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+
+  .month-title-row{
+    display:flex;
+    align-items:center;
+    gap: 4px;
+  }
+
+  .month-nav-btn{
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: var(--sage-soft);
+    color: var(--wine-deep);
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .month-nav-btn:active{
+    background: var(--sage);
+  }
+
+  .month-nav-btn:disabled{
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .month-stats{
+    display:flex;
+    gap: 14px;
+    font-size: 13px;
+  }
+
+  .month-stat{
+    display:flex;
+    align-items:center;
+    gap: 6px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  .month-stat .dot{
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .month-stat .dot.dot-done{ background: var(--wine); }
+  .month-stat .dot.dot-rest{ background: var(--amber); }
+
+  .month-weekdays{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .month-weekdays span{
+    text-align:center;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .month-grid{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .month-cell{
+    aspect-ratio: 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 12px;
+    border-radius: 9px;
+    color: var(--ink-soft);
+    background: var(--cream);
+  }
+
+  .month-cell.empty{
+    background: transparent;
+  }
+
+  .month-cell.today{
+    box-shadow: inset 0 0 0 1.5px var(--wine);
+    font-weight: 600;
+    color: var(--wine);
+  }
+
+  .month-cell.done{
+    background: var(--wine);
+    color: #FBF3E9;
+    font-weight: 500;
+  }
+
+  .month-cell.rest{
+    background: var(--amber-soft);
+    color: #8A6A2E;
+    font-weight: 500;
+  }
+
+  .month-cell.future{
+    color: #C9BFAE;
+  }
+
+  .view-toggle-row{
+    display:flex;
+    justify-content:flex-end;
+    margin: -6px 0 12px;
+  }
+
+  .view-toggle-btn{
+    border: none;
+    background: transparent;
+    color: var(--wine-deep);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 4px 2px;
+    cursor: pointer;
+  }
+
+  .year-header{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .year-title{
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0;
+    min-width: 64px;
+    text-align:center;
+  }
+
+  .year-months-grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .mini-month{
+    background: var(--cream);
+    border-radius: 14px;
+    padding: 12px 10px;
+    cursor: pointer;
+  }
+
+  .mini-month.current{
+    box-shadow: inset 0 0 0 1.5px var(--wine);
+  }
+
+  .mini-month-name{
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--ink);
+    text-align:center;
+  }
+
+  .mini-grid{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .mini-cell{
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: var(--line);
+  }
+
+  .mini-cell.empty{
+    background: transparent;
+  }
+
+  .mini-cell.done{
+    background: var(--wine);
+  }
+
+  .mini-cell.rest{
+    background: var(--amber);
+  }
+
+  .mini-cell.today{
+    box-shadow: inset 0 0 0 1px var(--wine-deep);
+  }
+
+  .levels-roadmap{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .level-chip{
+    display:flex;
+    align-items:center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 500;
+    background: var(--cream);
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+
+  .level-chip .chip-mark{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--line);
+    flex-shrink: 0;
+  }
+
+  .level-chip.done{
+    background: var(--sage-soft);
+    color: #4C5B3F;
+    border-color: var(--sage-soft);
+  }
+  .level-chip.done .chip-mark{ background: var(--wine); }
+
+  .level-chip.current{
+    background: var(--wine);
+    color: #FBF3E9;
+    border-color: var(--wine);
+    font-weight: 600;
+  }
+  .level-chip.current .chip-mark{ background: #FBF3E9; }
+
+  .footnote{
+    text-align:center;
+    font-size: 12.5px;
+    color: var(--ink-soft);    margin-top: 28px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <p class="eyebrow" id="greeting">Добрый день</p>
+  <h1>Дневник тренировок</h1>
+
+  <div class="card">
+    <div class="level-row">
+      <div>
+        <p class="level-label">Текущий уровень</p>
+        <p class="level-name"><span class="level-mark"></span><span id="levelName">Старт</span></p>
+      </div>
+      <div class="streak-pill">🔥 <span id="streakCount">0</span> дней подряд</div>
+    </div>
+
+    <div class="progress-block">
+      <div class="progress-top">
+        <span class="to-label">До уровня</span>
+        <span class="next-level" id="nextLevelName">«В ритме»</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="progress-meta">
+        <span id="progressText">0 из 7 дней</span>
+        <span id="progressPercent">0%</span>
+      </div>
+    </div>
+
+    <div class="levels-roadmap" id="levelsRoadmap"></div>
+  </div>
+
+  <div class="cta-row">
+    <button class="cta" id="ctaButton">Тренировка сегодня</button>
+    <button class="cta-rest" id="restButton">Отдых сегодня</button>
+  </div>
+
+  <div class="card">
+    <p class="diary-title">Эта неделя</p>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+
+  <div class="view-toggle-row">
+    <button class="view-toggle-btn" id="viewToggleBtn">Год ›</button>
+  </div>
+
+  <div class="card" id="monthCard">
+    <div class="month-header">
+      <div class="month-title-row">
+        <button class="month-nav-btn" id="monthPrevBtn" aria-label="Предыдущий месяц">‹</button>
+        <p class="diary-title" id="monthTitle" style="margin:0;">Месяц</p>
+        <button class="month-nav-btn" id="monthNextBtn" aria-label="Следующий месяц">›</button>
+      </div>
+      <div class="month-stats">
+        <span class="month-stat"><span class="dot dot-done"></span><span id="monthDoneCount">0</span> трен.</span>
+        <span class="month-stat"><span class="dot dot-rest"></span><span id="monthRestCount">0</span> отд.</span>
+      </div>
+    </div>
+    <div class="month-weekdays">
+      <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+    </div>
+    <div class="month-grid" id="monthGrid"></div>
+  </div>
+
+  <div class="card" id="yearCard" style="display:none;">
+    <div class="year-header">
+      <button class="month-nav-btn" id="yearPrevBtn" aria-label="Предыдущий год">‹</button>
+      <p class="year-title" id="yearTitle">2026</p>
+      <button class="month-nav-btn" id="yearNextBtn" aria-label="Следующий год">›</button>
+    </div>
+    <div class="year-months-grid" id="yearMonthsGrid"></div>
+  </div>
+
+  <p class="footnote">Тренировка или отдых — оба сохраняют серию 🤍<br>Отдых не засчитывается как тренировка, но не обнуляет счётчик дней подряд.</p>
+</div>
+
+<script>
+  // ---- Уровни: настройте под свою программу ----
+  const LEVELS = [
+    { name: 'Старт',           minDays: 0   },
+    { name: 'В ритме',         minDays: 7   },
+    { name: 'Устойчивость',    minDays: 14  },
+    { name: 'Сила',            minDays: 21  },
+    { name: 'Дисциплина',      minDays: 30  },
+    { name: 'Характер',        minDays: 45  },
+    { name: 'Постоянство',     minDays: 60  },
+    { name: 'Мастерство',      minDays: 90  },
+    { name: 'Стойкость',       minDays: 120 },
+    { name: 'Железная воля',   minDays: 180 },
+    { name: 'Несгибаемость',   minDays: 270 },
+    { name: 'Легенда',         minDays: 365 }
+  ];
+
+  const DAY_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+  // Какой месяц сейчас отображается в блоке "Месяц" (по умолчанию — текущий)
+  const now = new Date();
+  let viewedYear = now.getFullYear();
+  let viewedMonth = now.getMonth();
+
+  // Год для годового обзора и текущий режим просмотра
+  let yearViewYear = now.getFullYear();
+  let currentView = 'month'; // 'month' | 'year'
+  const MONTH_NAMES_FULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const MONTH_NAMES_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+  function getMondayOfWeek(date){
+    const d = new Date(date);
+    const day = (d.getDay() + 6) % 7; // 0 = Monday
+    d.setDate(d.getDate() - day);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function dateKey(date){
+    return date.toISOString().slice(0,10);
+  }
+
+  function getLevelInfo(totalDays){
+    let current = LEVELS[0];
+    let next = LEVELS[1];
+    for(let i=0;i<LEVELS.length;i++){
+      if(totalDays >= LEVELS[i].minDays){
+        current = LEVELS[i];
+        next = LEVELS[i+1] || null;
+      }
+    }
+    return { current, next };
+  }
+
+  function renderLevelsRoadmap(streak, current){
+    const wrap = document.getElementById('levelsRoadmap');
+    wrap.innerHTML = '';
+    LEVELS.forEach((level) => {
+      const isDone = streak >= level.minDays && level.name !== current.name;
+      const isCurrent = level.name === current.name;
+
+      const chip = document.createElement('div');
+      chip.className = 'level-chip' + (isDone ? ' done' : '') + (isCurrent ? ' current' : '');
+
+      const mark = document.createElement('span');
+      mark.className = 'chip-mark';
+
+      const label = document.createElement('span');
+      label.textContent = level.name;
+
+      chip.appendChild(mark);
+      chip.appendChild(label);
+      wrap.appendChild(chip);
+    });
+  }
+
+  async function loadCompletedDates(){
+    try{
+      const raw = localStorage.getItem('workout-dates');
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){
+      return [];
+    }
+  }
+
+  async function saveCompletedDates(dates){
+    try{
+      localStorage.setItem('workout-dates', JSON.stringify(dates));
+    } catch(e){
+      console.error('Не удалось сохранить', e);
+    }
+  }
+
+  async function loadRestDates(){
+    try{
+      const raw = localStorage.getItem('rest-dates');
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){
+      return [];
+    }
+  }
+
+  async function saveRestDates(dates){
+    try{
+      localStorage.setItem('rest-dates', JSON.stringify(dates));
+    } catch(e){
+      console.error('Не удалось сохранить', e);
+    }
+  }
+
+  async function render(){
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const todayKey = dateKey(today);
+
+    const completed = await loadCompletedDates();
+    const rested = await loadRestDates();
+    const completedSet = new Set(completed);
+    const restSet = new Set(rested);
+
+    // День считается "активным" (сохраняет серию), если это тренировка ИЛИ отдых
+    const isActiveDay = (key) => completedSet.has(key) || restSet.has(key);
+
+    // Streak: считаем подряд идущие активные дни назад от сегодня
+    // (или вчера, если сегодня ещё не отмечено)
+    let streak = 0;
+    let cursor = new Date(today);
+    if(!isActiveDay(todayKey)){
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while(isActiveDay(dateKey(cursor))){
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    const { current, next } = getLevelInfo(streak);
+    document.getElementById('levelName').textContent = current.name;
+    document.getElementById('streakCount').textContent = streak;
+    renderLevelsRoadmap(streak, current);
+
+    if(next){
+      const span = next.minDays - current.minDays;
+      const progressInLevel = streak - current.minDays;
+      const pct = Math.min(100, Math.round((progressInLevel / span) * 100));
+      document.getElementById('nextLevelName').textContent = `«${next.name}»`;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressText').textContent = `${progressInLevel} из ${span} дней`;
+      document.getElementById('progressPercent').textContent = pct + '%';
+    } else {
+      document.getElementById('nextLevelName').textContent = 'максимум';
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('progressText').textContent = 'Все уровни пройдены';
+      document.getElementById('progressPercent').textContent = '100%';
+    }
+
+    // Кнопки
+    const btn = document.getElementById('ctaButton');
+    const restBtn = document.getElementById('restButton');
+    const isDoneToday = completedSet.has(todayKey);
+    const isRestToday = restSet.has(todayKey);
+
+    btn.textContent = isDoneToday ? 'Тренировка отмечена ✓' : 'Тренировка сегодня';
+    btn.classList.toggle('done', isDoneToday);
+
+    restBtn.textContent = isRestToday ? 'Отдых отмечен ✓' : 'Отдых сегодня';
+    restBtn.classList.toggle('done', isRestToday);
+
+    // Неделя
+    const grid = document.getElementById('weekGrid');
+    grid.innerHTML = '';
+    const monday = getMondayOfWeek(today);
+    for(let i=0;i<7;i++){
+      const d = new Date(monday);
+      d.setDate(d.getDate() + i);
+      const key = dateKey(d);
+      const isToday = key === todayKey;
+      const isFuture = d > today;
+      const isDone = completedSet.has(key);
+      const isRest = restSet.has(key);
+
+      const wrap = document.createElement('div');
+      wrap.className = 'day';
+
+      const label = document.createElement('div');
+      label.className = 'day-label';
+      label.textContent = DAY_LABELS[i];
+
+      const circle = document.createElement('div');
+      circle.className = 'day-circle' +
+        (isDone ? ' done' : '') +
+        (isRest && !isDone ? ' rest' : '') +
+        (isToday && !isDone && !isRest ? ' today' : '') +
+        (isFuture ? ' future' : '');
+      circle.textContent = isRest && !isDone ? '⋯' : d.getDate();
+
+      wrap.appendChild(label);
+      wrap.appendChild(circle);
+      grid.appendChild(wrap);
+    }
+
+    // Месяц
+    const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+    const year = viewedYear;
+    const month = viewedMonth;
+    document.getElementById('monthTitle').textContent = `${MONTH_NAMES[month]} ${year}`;
+
+    // Нельзя листать в будущее дальше текущего месяца
+    const isCurrentMonth = (year === today.getFullYear() && month === today.getMonth());
+    document.getElementById('monthNextBtn').disabled = isCurrentMonth;
+
+    const firstOfMonth = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstWeekday = (firstOfMonth.getDay() + 6) % 7; // 0 = Monday
+
+    let monthDoneCount = 0;
+    let monthRestCount = 0;
+
+    const monthGrid = document.getElementById('monthGrid');
+    monthGrid.innerHTML = '';
+
+    for(let i=0;i<firstWeekday;i++){
+      const empty = document.createElement('div');
+      empty.className = 'month-cell empty';
+      monthGrid.appendChild(empty);
+    }
+
+    for(let dayNum=1; dayNum<=daysInMonth; dayNum++){
+      const d = new Date(year, month, dayNum);
+      const key = dateKey(d);
+      const isToday = key === todayKey;
+      const isFuture = d > today;
+      const isDone = completedSet.has(key);
+      const isRest = restSet.has(key);
+
+      if(isDone) monthDoneCount++;
+      if(isRest) monthRestCount++;
+
+      const cell = document.createElement('div');
+      cell.className = 'month-cell' +
+        (isDone ? ' done' : '') +
+        (isRest && !isDone ? ' rest' : '') +
+        (isToday && !isDone && !isRest ? ' today' : '') +
+        (isFuture ? ' future' : '');
+      cell.textContent = dayNum;
+      monthGrid.appendChild(cell);
+    }
+
+    document.getElementById('monthDoneCount').textContent = monthDoneCount;
+    document.getElementById('monthRestCount').textContent = monthRestCount;
+  }
+
+  async function renderYear(){
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const todayKey = dateKey(today);
+
+    const completed = await loadCompletedDates();
+    const rested = await loadRestDates();
+    const completedSet = new Set(completed);
+    const restSet = new Set(rested);
+
+    document.getElementById('yearTitle').textContent = yearViewYear;
+    document.getElementById('yearNextBtn').disabled = (yearViewYear >= today.getFullYear());
+
+    const yearGrid = document.getElementById('yearMonthsGrid');
+    yearGrid.innerHTML = '';
+
+    for(let m=0; m<12; m++){
+      const firstOfMonth = new Date(yearViewYear, m, 1);
+      const daysInMonth = new Date(yearViewYear, m + 1, 0).getDate();
+      const firstWeekday = (firstOfMonth.getDay() + 6) % 7;
+      const isCurrentMonth = (yearViewYear === today.getFullYear() && m === today.getMonth());
+
+      const miniWrap = document.createElement('div');
+      miniWrap.className = 'mini-month' + (isCurrentMonth ? ' current' : '');
+      miniWrap.addEventListener('click', () => {
+        viewedYear = yearViewYear;
+        viewedMonth = m;
+        switchView('month');
+      });
+
+      const miniName = document.createElement('p');
+      miniName.className = 'mini-month-name';
+      miniName.textContent = MONTH_NAMES_SHORT[m];
+      miniWrap.appendChild(miniName);
+
+      const miniGrid = document.createElement('div');
+      miniGrid.className = 'mini-grid';
+
+      for(let i=0; i<firstWeekday; i++){
+        const empty = document.createElement('div');
+        empty.className = 'mini-cell empty';
+        miniGrid.appendChild(empty);
+      }
+
+      for(let dayNum=1; dayNum<=daysInMonth; dayNum++){
+        const d = new Date(yearViewYear, m, dayNum);
+        const key = dateKey(d);
+        const isDone = completedSet.has(key);
+        const isRest = restSet.has(key);
+        const isToday = key === todayKey;
+
+        const cell = document.createElement('div');
+        cell.className = 'mini-cell' +
+          (isDone ? ' done' : '') +
+          (isRest && !isDone ? ' rest' : '') +
+          (isToday && !isDone && !isRest ? ' today' : '');
+        miniGrid.appendChild(cell);
+      }
+
+      miniWrap.appendChild(miniGrid);
+      yearGrid.appendChild(miniWrap);
+    }
+  }
+
+  function switchView(view){
+    currentView = view;
+    const monthCard = document.getElementById('monthCard');
+    const yearCard = document.getElementById('yearCard');
+    const toggleBtn = document.getElementById('viewToggleBtn');
+
+    if(view === 'year'){
+      monthCard.style.display = 'none';
+      yearCard.style.display = '';
+      toggleBtn.textContent = '‹ Месяц';
+      renderYear();
+    } else {
+      monthCard.style.display = '';
+      yearCard.style.display = 'none';
+      toggleBtn.textContent = 'Год ›';
+      render();
+    }
+  }
+
+  document.getElementById('viewToggleBtn').addEventListener('click', () => {
+    switchView(currentView === 'month' ? 'year' : 'month');
+  });
+
+  document.getElementById('yearPrevBtn').addEventListener('click', () => {
+    yearViewYear--;
+    renderYear();
+  });
+
+  document.getElementById('yearNextBtn').addEventListener('click', () => {
+    if(document.getElementById('yearNextBtn').disabled) return;
+    yearViewYear++;
+    renderYear();
+  });
+
+  document.getElementById('ctaButton').addEventListener('click', async () => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const todayKey = dateKey(today);
+
+    const completed = await loadCompletedDates();
+    const rested = await loadRestDates();
+    const set = new Set(completed);
+    const restSet = new Set(rested);
+
+    if(set.has(todayKey)){
+      set.delete(todayKey);
+    } else {
+      set.add(todayKey);
+      restSet.delete(todayKey); // тренировка и отдых взаимоисключающие
+    }
+    await saveCompletedDates(Array.from(set));
+    await saveRestDates(Array.from(restSet));
+    render();
+  });
+
+  document.getElementById('restButton').addEventListener('click', async () => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const todayKey = dateKey(today);
+
+    const completed = await loadCompletedDates();
+    const rested = await loadRestDates();
+    const set = new Set(completed);
+    const restSet = new Set(rested);
+
+    if(restSet.has(todayKey)){
+      restSet.delete(todayKey);
+    } else {
+      restSet.add(todayKey);
+      set.delete(todayKey); // тренировка и отдых взаимоисключающие
+    }
+    await saveCompletedDates(Array.from(set));
+    await saveRestDates(Array.from(restSet));
+    render();
+  });
+
+  document.getElementById('monthPrevBtn').addEventListener('click', () => {
+    viewedMonth--;
+    if(viewedMonth < 0){ viewedMonth = 11; viewedYear--; }
+    render();
+  });
+
+  document.getElementById('monthNextBtn').addEventListener('click', () => {
+    if(document.getElementById('monthNextBtn').disabled) return;
+    viewedMonth++;
+    if(viewedMonth > 11){ viewedMonth = 0; viewedYear++; }
+    render();
+  });
+
+  // Приветствие по времени суток
+  const hour = new Date().getHours();
+  const greetingEl = document.getElementById('greeting');
+  if(hour < 6) greetingEl.textContent = 'Доброй ночи';
+  else if(hour < 12) greetingEl.textContent = 'Доброе утро';
+  else if(hour < 18) greetingEl.textContent = 'Добрый день';
+  else greetingEl.textContent = 'Добрый вечер';
+
+  render();
+
+  // Если открыто внутри Telegram — растягиваем на весь экран
+  if(window.Telegram && window.Telegram.WebApp){
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
+</script>
+
+</body>
+</html>
