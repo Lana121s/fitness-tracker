@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Дневник тренировок</title>
+
+<!--
+  Это заготовка для Telegram Mini App.
+  Когда будете подключать к реальному боту — раскомментируйте строку ниже
+  и подключите её в BotFather как Web App URL.
+-->
+<!-- <script src="https://telegram.org/js/telegram-web-app.js"></script> -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream: #F7F8F3;
+    --cream-card: #FFFFFF;
+    --ink: #333A2D;
+    --ink-soft: #8B927E;
+    --wine: #8CA179;
+    --wine-deep: #6F8460;
+    --sage: #C3D3B4;
+    --sage-soft: #EEF2E7;
+    --line: #E7EBE0;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background: var(--cream);
+    font-family: 'Work Sans', sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .screen{
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+    min-height: 100vh;
+  }
+
+  .eyebrow{
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+  }
+
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 30px;
+    line-height: 1.15;
+    margin: 0 0 28px;
+    letter-spacing: -0.01em;
+  }
+
+  .card{
+    background: var(--cream-card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+
+  .level-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 18px;
+  }
+
+  .level-label{
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 6px;
+  }
+
+  .level-name{
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+    display:flex;
+    align-items:center;
+    gap: 8px;
+  }
+
+  .level-mark{
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--wine);
+    display:inline-block;
+  }
+
+  .streak-pill{
+    background: var(--sage-soft);
+    color: #4C5B3F;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    display:flex;
+    align-items:center;
+    gap: 6px;
+  }
+
+  .progress-block{
+    background: var(--cream);
+    border-radius: 14px;
+    padding: 16px 16px 14px;
+  }
+
+  .progress-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom: 10px;
+  }
+
+  .progress-top .to-label{
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .progress-top .next-level{
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    margin-left: 8px;
+  }
+
+  .progress-track{
+    height: 5px;
+    background: var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-fill{
+    height: 100%;
+    background: var(--wine);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-meta{
+    display:flex;
+    justify-content:space-between;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .cta{
+    width: 100%;
+    background: var(--wine);
+    color: #FBF3E9;
+    border: none;
+    border-radius: 14px;
+    padding: 17px;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 8px;
+    margin-bottom: 24px;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .cta:active{ transform: scale(0.98); }
+  .cta.done{ background: var(--sage); color: #2E3527; }
+
+  .diary-title{
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 500;
+    margin: 0 0 16px;
+  }
+
+  .week-grid{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .day{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 8px;
+  }
+
+  .day-label{
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .day-circle{
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1.5px solid var(--line);
+    color: var(--ink-soft);
+    background: var(--cream-card);
+  }
+
+  .day-circle.today{
+    border-color: var(--wine);
+    color: var(--wine);
+    font-weight: 600;
+  }
+
+  .day-circle.done{
+    background: var(--wine);
+    border-color: var(--wine);
+    color: #FBF3E9;
+  }
+
+  .day-circle.future{
+    color: #C9BFAE;
+    border-color: var(--line);
+  }
+
+  .footnote{
+    text-align:center;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 28px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <p class="eyebrow" id="greeting">Добрый день</p>
+  <h1>Дневник тренировок</h1>
+
+  <div class="card">
+    <div class="level-row">
+      <div>
+        <p class="level-label">Текущий уровень</p>
+        <p class="level-name"><span class="level-mark"></span><span id="levelName">Старт</span></p>
+      </div>
+      <div class="streak-pill">🔥 <span id="streakCount">0</span> дней подряд</div>
+    </div>
+
+    <div class="progress-block">
+      <div class="progress-top">
+        <span class="to-label">До уровня</span>
+        <span class="next-level" id="nextLevelName">«В ритме»</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="progress-meta">
+        <span id="progressText">0 из 7 дней</span>
+        <span id="progressPercent">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="cta" id="ctaButton">Отметить тренировку сегодня</button>
+
+  <div class="card">
+    <p class="diary-title">Эта неделя</p>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+
+  <p class="footnote">Тренируйтесь регулярно — уровень растёт сам по себе 🤍</p>
+</div>
+
+<script>
+  // ---- Уровни: настройте под свою программу ----
+  const LEVELS = [
+    { name: 'Старт',         minDays: 0   },
+    { name: 'В ритме',       minDays: 7   },
+    { name: 'Сила',          minDays: 21  },
+    { name: 'Мастерство',    minDays: 45  },
+    { name: 'Железная воля', minDays: 90  },
+    { name: 'Легенда',       minDays: 180 }
+  ];
+
+  const DAY_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+  function getMondayOfWeek(date){
+    const d = new Date(date);
+    const day = (d.getDay() + 6) % 7; // 0 = Monday
+    d.setDate(d.getDate() - day);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function dateKey(date){
+    return date.toISOString().slice(0,10);
+  }
+
+  function getLevelInfo(totalDays){
+    let current = LEVELS[0];
+    let next = LEVELS[1];
+    for(let i=0;i<LEVELS.length;i++){
+      if(totalDays >= LEVELS[i].minDays){
+        current = LEVELS[i];
+        next = LEVELS[i+1] || null;
+      }
+    }
+    return { current, next };
+  }
+
+  async function loadCompletedDates(){
+    try{
+      const raw = localStorage.getItem('workout-dates');
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){
+      return [];
+    }
+  }
+
+  async function saveCompletedDates(dates){
+    try{
+      localStorage.setItem('workout-dates', JSON.stringify(dates));
+    } catch(e){
+      console.error('Не удалось сохранить', e);
+    }
+  }
+
+  async function render(){
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const todayKey = dateKey(today);
+
+    const completed = await loadCompletedDates();
+    const completedSet = new Set(completed);
+
+    // Streak: считаем подряд идущие дни назад от сегодня (или вчера, если сегодня ещё не отмечено)
+    let streak = 0;
+    let cursor = new Date(today);
+    if(!completedSet.has(todayKey)){
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while(completedSet.has(dateKey(cursor))){
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    const { current, next } = getLevelInfo(streak);
+    document.getElementById('levelName').textContent = current.name;
+    document.getElementById('streakCount').textContent = streak;
+
+    if(next){
+      const span = next.minDays - current.minDays;
+      const progressInLevel = streak - current.minDays;
+      const pct = Math.min(100, Math.round((progressInLevel / span) * 100));
+      document.getElementById('nextLevelName').textContent = `«${next.name}»`;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressText').textContent = `${progressInLevel} из ${span} дней`;
+      document.getElementById('progressPercent').textContent = pct + '%';
+    } else {
+      document.getElementById('nextLevelName').textContent = 'максимум';
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('progressText').textContent = 'Все уровни пройдены';
+      document.getElementById('progressPercent').textContent = '100%';
+    }
+
+    // Кнопка
+    const btn = document.getElementById('ctaButton');
+    const isDoneToday = completedSet.has(todayKey);
+    btn.textContent = isDoneToday ? 'Тренировка отмечена ✓' : 'Отметить тренировку сегодня';
+    btn.classList.toggle('done', isDoneToday);
+
+    // Неделя
+    const grid = document.getElementById('weekGrid');
+    grid.innerHTML = '';
+    const monday = getMondayOfWeek(today);
+    for(let i=0;i<7;i++){
+      const d = new Date(monday);
+      d.setDate(d.getDate() + i);
+      const key = dateKey(d);
+      const isToday = key === todayKey;
+      const isFuture = d > today;
+      const isDone = completedSet.has(key);
+
+      const wrap = document.createElement('div');
+      wrap.className = 'day';
+
+      const label = document.createElement('div');
+      label.className = 'day-label';
+      label.textContent = DAY_LABELS[i];
+
+      const circle = document.createElement('div');
+      circle.className = 'day-circle' +
+        (isDone ? ' done' : '') +
+        (isToday && !isDone ? ' today' : '') +
+        (isFuture ? ' future' : '');
+      circle.textContent = d.getDate();
+
+      wrap.appendChild(label);
+      wrap.appendChild(circle);
+      grid.appendChild(wrap);
+    }
+  }
+
+  document.getElementById('ctaButton').addEventListener('click', async () => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const todayKey = dateKey(today);
+
+    const completed = await loadCompletedDates();
+    const set = new Set(completed);
+    if(set.has(todayKey)){
+      set.delete(todayKey);
+    } else {
+      set.add(todayKey);
+    }
+    await saveCompletedDates(Array.from(set));
+    render();
+  });
+
+  // Приветствие по времени суток
+  const hour = new Date().getHours();
+  const greetingEl = document.getElementById('greeting');
+  if(hour < 6) greetingEl.textContent = 'Доброй ночи';
+  else if(hour < 12) greetingEl.textContent = 'Доброе утро';
+  else if(hour < 18) greetingEl.textContent = 'Добрый день';
+  else greetingEl.textContent = 'Добрый вечер';
+
+  render();
+
+  // Если открыто внутри Telegram — растягиваем на весь экран
+  if(window.Telegram && window.Telegram.WebApp){
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
+</script>
+
+</body>
+</html>
